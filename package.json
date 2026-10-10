@@ -9,7 +9,7 @@
     "simulate": "node tools/simulate.mjs"
   },
   "devDependencies": {
-    "cos-reloaded-importer": "file:../cos-reloaded-importer",
+    "cos-reloaded-importer": "github:Stphn-Wrn/cos-reloaded-importer",
     "esbuild": "0.25.10",
     "showdown": "2.1.0"
   }
