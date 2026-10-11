@@ -1,15 +1,14 @@
 import { buildJournalPlan } from "cos-reloaded-importer/src/build/journal-plan.js";
 import { createPageRenderer } from "cos-reloaded-importer/src/convert/page-renderer.js";
-import { createLinkResolver } from "cos-reloaded-importer/src/resolve/link-resolver.js";
 import { createLocalization, identityLocalization } from "cos-reloaded-importer/src/translate/localization.js";
 import { buildVaultIndex } from "cos-reloaded-importer/src/vault/vault-index.js";
 import { buildHandoutPlan } from "./handout-plan.js";
+import { toRoll20Html } from "./html.js";
 import { formatRoll20Link } from "./links.js";
+import { createRoll20LinkResolver } from "./roll20-resolver.js";
+import { computeSplitLevels } from "./split-levels.js";
 
 const ROOT_NAME = "Curse of Strahd: Reloaded";
-
-// Roll20 handout links cannot target a heading, so anchors are never used.
-const noSlug = (text) => text;
 
 function localizationFor(translation, index) {
   if (!translation) {
@@ -23,13 +22,31 @@ function localizationFor(translation, index) {
 export function buildHandoutData({ markdownFiles, imagePaths, imageUrl, toHtml, lang, translation = null, only = "" }) {
   const index = buildVaultIndex({ markdownFiles, imagePaths });
   const localization = localizationFor(translation, index);
-  const resolveLink = createLinkResolver({ index, slugify: noSlug, localization });
-  const renderPage = createPageRenderer({ resolveLink, imageUrl, toHtml, formatLink: formatRoll20Link });
-  const journalPlan = buildJournalPlan({ index, renderPage, rootName: ROOT_NAME, localization });
-  const journals = journalPlan.journals.filter((journal) => journal.path.startsWith(only));
+  const splitLevels = computeSplitLevels(index);
+  const resolveLink = createRoll20LinkResolver({ index, splitLevels, localization });
+
+  // Pages keep their displayed markdown: they are cut into handouts before rendering.
+  const journalPlan = buildJournalPlan({ index, renderPage: (markdown) => markdown, rootName: ROOT_NAME, localization });
+
+  function renderChunk(markdown, document, key) {
+    const renderPage = createPageRenderer({
+      resolveLink: (link, fromDocument) => resolveLink(link, fromDocument, key),
+      imageUrl,
+      toHtml,
+      formatLink: formatRoll20Link
+    });
+    return toRoll20Html(renderPage(markdown, document));
+  }
+
   return {
     lang,
-    handouts: buildHandoutPlan({ ...journalPlan, journals }),
+    handouts: buildHandoutPlan({
+      journalPlan,
+      index,
+      splitLevels,
+      renderChunk,
+      includes: (journal) => journal.path.startsWith(only)
+    }),
     translation: localization.stats
   };
 }
