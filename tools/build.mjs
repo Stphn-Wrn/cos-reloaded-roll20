@@ -1,7 +1,7 @@
 // Builds the Roll20 Mod script: fetches the guide from GitHub, converts it with the
 // shared pipeline and bundles the handouts with the importer into one file.
 //
-//   node tools/build.mjs --lang fr --only "Act I - Into the Mists/Arc A" --out dist/arc-a.js
+//   node tools/build.mjs --lang en --only "Act I - Into the Mists/Arc A" --out dist/arc-a-en.js
 import { mkdir, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

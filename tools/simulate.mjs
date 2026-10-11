@@ -1,7 +1,7 @@
 // Runs a generated Mod script inside a fake Roll20 sandbox and reports what the
 // import produced, to check a build before trying it in a real game.
 //
-//   node tools/simulate.mjs dist/arc-a-fr.js
+//   node tools/simulate.mjs dist/arc-a-en.js
 import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 
